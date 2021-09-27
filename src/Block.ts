@@ -1,16 +1,16 @@
 import Transaction from "./Transaction";
-import * as cj from "crypto-js";
+import * as crypto from "crypto";
 import * as eccrypto from 'eccrypto'
 
 
 export default class Block {
-    transactions: Array<Transaction>
-    prevHash: string
+    transactions: Transaction[]
+    prevHash: Buffer
     nonce: number
 
     constructor(transactions?: Transaction[]) {
         this.transactions = []
-        this.prevHash = ""
+        this.prevHash = Buffer.from("")
         this.nonce = 0
 
         if (transactions != null) {
@@ -25,26 +25,27 @@ export default class Block {
         return true
     }
 
-    setPrevHash(prevHash: string) {
+    setPrevHash(prevHash: Buffer) {
         this.prevHash = prevHash;
     }
     
-    getHash(): string {
+    getHash(): Buffer {
         let txsHashes = [];
         for (let tx of this.transactions) {
             txsHashes.push(tx.getHash());
         }
-        const hash = cj.SHA256(txsHashes.join("") + this.prevHash + this.nonce.toString()).toString()
+        const str = [...txsHashes, this.prevHash, this.nonce].toString()
+        const hash = crypto.createHash('sha256').update(str).digest()
         return hash;
     }
 
-    mine(difficulty: number) {
+    mine(difficulty: number): number {
         const targetSubstring = '0'.repeat(difficulty);
         
         const start: number = Date.now()
 
-        const wrongHashes: string[] = [] 
-        while (this.getHash().slice(0, difficulty) != targetSubstring) {
+        const wrongHashes: Buffer[] = [] 
+        while (this.getHash().toString().slice(0, difficulty) != targetSubstring) {
             this.nonce += 1;
             wrongHashes.push(this.getHash()) 
         }

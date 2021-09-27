@@ -1,21 +1,29 @@
-import * as cj from 'crypto-js'
+import * as crypto from 'crypto'
 import * as eccrypto from 'eccrypto'
 
-export default class Transaction {
-    from: number;
-    to: number;
-    amount: number;
+import { Signature, Address } from './types'
 
-    constructor(from: number, to: number, amount: number) {
+export default class Transaction {
+    from: Address;
+    to: Address;
+    amount: number;
+    signature?: Signature;
+
+    constructor(from: Address, to: Address, amount: number) {
         this.from = from;
         this.to = to;
         this.amount = amount;
     }
 
-    getHash(): string {
+    getHash(): Buffer {
         const data = this.from.toString() + this.to.toString() + this.amount.toString();
-        const preHash = cj.SHA256(data);
-        const hash = preHash.toString();
+        const hash = crypto.createHash('sha256').update(data).digest();
         return hash;
+    }
+
+    sign(signature: Signature) {
+        // validate
+        // if (signature checks out)
+        this.signature = signature
     }
 }
