@@ -1,6 +1,7 @@
 import Block from './Block'
 import * as crypto from 'crypto'
 import * as eccrypto from 'eccrypto'
+import { buffer } from 'stream/consumers'
 
 export default class BlockChain {
     blocks: Array<Block>
@@ -23,7 +24,10 @@ export default class BlockChain {
             console.log(`${block.prevHash} does not equal \n${this.blocks.slice(-1)[0].getHash()}`)
             throw Error("couldn't add block. wrong prevHash")
         }
-        if (block.getHash().toString().slice(0, this.difficulty) !== '0'.repeat(this.difficulty)) {
+        if (
+            Buffer.compare( block.getHash().slice(0, this.difficulty), Buffer.alloc(this.difficulty)) !== 0) {
+            console.log(block.getHash().slice(0, this.difficulty));
+            console.log(Buffer.alloc(this.difficulty))
             throw Error("couldn't add block. block not mined")
         }
         this.blocks.push(block)
